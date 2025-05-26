@@ -10,7 +10,7 @@ export async function POST() {
           {
             type: "text",
             id: "department",
-            text: "This contact works in:",
+            text: "Você deseja escalar para qual departamento?",
             align: "center",
             style: "header",
           },
