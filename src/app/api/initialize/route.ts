@@ -1,5 +1,3 @@
-// /home/edtech1985/Documents/Digibee/app/intercom/intercom-esc-tkt/src/app/api/initialize/ route.ts
-
 import { NextResponse } from "next/server";
 
 export async function POST() {
@@ -9,27 +7,32 @@ export async function POST() {
         components: [
           {
             type: "text",
-            id: "department",
-            text: "Você deseja escalar para qual departamento?",
+            id: "023",
+            text: "Support-Escalation",
             align: "center",
             style: "header",
           },
           {
-            type: "checkbox",
-            id: "departmentChoice",
-            label: "",
+            type: "list",
+            id: "024",
+            label: "Escolha o tipo de escalonamento",
+            single_selection: true,
             options: [
               {
                 type: "option",
                 id: "001",
-                text: "Precisa de uma análise imediata",
+                title: "Precisa de uma análise imediata",
               },
-              { type: "option", id: "002", text: "Cliente ocioso" },
+              {
+                type: "option",
+                id: "002",
+                title: "Cliente ocioso",
+              },
             ],
           },
           {
             type: "button",
-            label: "Enviar",
+            label: "Escalar",
             style: "primary",
             id: "submit_button",
             action: { type: "submit" },
