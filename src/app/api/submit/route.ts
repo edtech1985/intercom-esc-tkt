@@ -1,39 +1,64 @@
+// /api/submit/route.ts
 import { NextResponse } from "next/server";
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    console.log("Received submit data:", body);
+    const componentId = body.component_id;
 
-    const department = body.input_values?.departmentChoice || "None";
+    // Verifica qual botão foi clicado
+    if (componentId === "submit_button_pipeline") {
+      const pipelineResponse = await fetch(
+        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/api-internal-edson",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ msg: "edtech" }),
+        }
+      );
 
-    const finalCanvas = {
+      const result = await pipelineResponse.json();
+
+      return NextResponse.json({
+        canvas: {
+          content: {
+            components: [
+              {
+                type: "text",
+                id: "resultText",
+                text: `Resposta do pipeline: ${result.message}`,
+                align: "center",
+                style: "header",
+              },
+            ],
+          },
+        },
+      });
+    }
+
+    // Tratamento padrão do botão original
+    const inputValues = body.input_values || {};
+    const departmentChoice = inputValues.departmentChoice || [];
+
+    return NextResponse.json({
       canvas: {
         content: {
           components: [
             {
               type: "text",
-              id: "thanks",
-              text: `Você escolheu: ${department}`,
+              id: "success",
+              text: `Você selecionou: ${departmentChoice.join(", ")}`,
               align: "center",
               style: "header",
-            },
-            {
-              type: "button",
-              label: "Submit another",
-              style: "primary",
-              id: "refresh_button",
-              action: { type: "submit" },
             },
           ],
         },
       },
-    };
-
-    return NextResponse.json(finalCanvas);
+    });
   } catch (error) {
-    console.error("Submit error:", error);
+    console.error("Erro no submit:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to process submit" },
+      { error: "Falha ao processar o submit." },
       { status: 500 }
     );
   }
