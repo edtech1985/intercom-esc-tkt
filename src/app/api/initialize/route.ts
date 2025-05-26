@@ -19,9 +19,10 @@ export async function POST() {
             id: "departmentChoice",
             label: "",
             options: [
-              { type: "option", id: "sales", text: "Sales" },
-              { type: "option", id: "operations", text: "Operations" },
-              { type: "option", id: "engineering", text: "Engineering" },
+              { type: "option", id: "csm", text: "CSM" },
+              { type: "option", id: "products", text: "Produtos" },
+              { type: "option", id: "support", text: "Suporte" },
+              { type: "option", id: "clevel", text: "C-Level" },
             ],
           },
           {
