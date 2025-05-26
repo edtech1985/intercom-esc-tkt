@@ -1,19 +1,38 @@
-// /api/submit/route.ts
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const componentId = body.component_id;
+    const inputValues = body.input_values || {};
 
-    // Verifica qual botão foi clicado
+    // Extrair metadados do usuário
+    const user = body.user || {};
+    const userId = user.id || "unknown";
+    const email = user.email || "unknown";
+    const name = user.name || "unknown";
+    const customAttributes = user.custom_attributes || {};
+    const conversationId = customAttributes.conversation_id || "not provided";
+    const contactType = customAttributes.contact_type || "not set";
+
     if (componentId === "submit_button_pipeline") {
+      // Chamada ao pipeline com os metadados
       const pipelineResponse = await fetch(
         "http://test.godigibee.io/pipeline/dgb-support-lab/v1/api-internal-edson",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ msg: "edtech" }),
+          body: JSON.stringify({
+            msg: "edtech",
+            metadata: {
+              user_id: userId,
+              email,
+              name,
+              conversation_id: conversationId,
+              contact_type: contactType,
+              input_values: inputValues,
+            },
+          }),
         }
       );
 
@@ -37,7 +56,6 @@ export async function POST(request: Request) {
     }
 
     // Tratamento padrão do botão original
-    const inputValues = body.input_values || {};
     const departmentChoice = inputValues.departmentChoice || [];
 
     return NextResponse.json({
