@@ -13,20 +13,19 @@ export async function POST() {
             style: "header",
           },
           {
-            type: "list",
-            id: "024",
+            type: "single-select",
+            id: "departmentChoice",
             label: "Escolha o tipo de escalonamento",
-            single_selection: true,
             options: [
               {
                 type: "option",
                 id: "001",
-                title: "Precisa de uma análise imediata",
+                text: "Precisa de uma análise imediata",
               },
               {
                 type: "option",
                 id: "002",
-                title: "Cliente ocioso",
+                text: "Cliente ocioso",
               },
             ],
           },
