@@ -13,7 +13,7 @@ export async function POST(request: Request) {
             {
               type: "text",
               id: "thanks",
-              text: `You chose: ${department}`,
+              text: `Você escolheu: ${department}`,
               align: "center",
               style: "header",
             },
