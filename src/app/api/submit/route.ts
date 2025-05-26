@@ -12,7 +12,15 @@ export async function POST(request: Request) {
     const email = user.email || "unknown";
     const name = user.name || "unknown";
     const customAttributes = user.custom_attributes || {};
-    const conversationId = customAttributes.conversation_id || "not provided";
+
+    // Tenta extrair o conversation_id do body.conversation.id
+    const conversationId =
+      body.conversation?.id ||
+      body.metadata?.conversation_id ||
+      body.input_values?.conversation_id ||
+      customAttributes.conversation_id ||
+      "not provided";
+
     const contactType = customAttributes.contact_type || "not set";
 
     if (componentId === "submit_button_pipeline") {
