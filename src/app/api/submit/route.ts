@@ -8,9 +8,6 @@ export async function POST(request: Request) {
 
     // Extrair metadados do usuário
     const user = body.user || {};
-    const userId = user.id || "unknown";
-    const email = user.email || "unknown";
-    const name = user.name || "unknown";
     const customAttributes = user.custom_attributes || {};
 
     // Tenta extrair o conversation_id do body.conversation.id
@@ -26,16 +23,13 @@ export async function POST(request: Request) {
     if (componentId === "submit_button_pipeline") {
       // Chamada ao pipeline com os metadados
       const pipelineResponse = await fetch(
-        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/api-internal-edson",
+        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/api-support-escalation/analise-imediata",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            msg: "edtech",
+            msg: "teste analise imediata",
             metadata: {
-              user_id: userId,
-              email,
-              name,
               conversation_id: conversationId,
               contact_type: contactType,
               input_values: inputValues,

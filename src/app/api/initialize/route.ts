@@ -38,7 +38,7 @@ export async function POST() {
           },
           {
             type: "button",
-            label: "Chamar Pipeline",
+            label: "Testar Chamar Pipeline",
             style: "secondary",
             id: "submit_button_pipeline",
             action: { type: "submit" },
