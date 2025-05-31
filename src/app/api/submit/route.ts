@@ -29,7 +29,7 @@ export async function POST(request: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            apikey: "Bearer x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
+            "apikey": "x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
           },
           body: JSON.stringify({
             msg: "teste analise imediata",
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            apikey: "Bearer x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
+            apikey: "x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
           },
           body: JSON.stringify({
             msg: "",
