@@ -22,12 +22,54 @@ export async function POST(request: Request) {
 
     const contactType = customAttributes.contact_type || "not set";
 
+    if (componentId === "submit_button_pipeline") {
+      const pipelineResponse = await fetch(
+        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/analise-imediata",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
+          },
+          body: JSON.stringify({
+            msg: "teste analise imediata",
+            metadata: {
+              conversation_id: conversationId,
+              contact_type: contactType,
+              input_values: inputValues,
+            },
+          }),
+        }
+      );
+
+      const result = await pipelineResponse.json();
+
+      return NextResponse.json({
+        canvas: {
+          content: {
+            components: [
+              {
+                type: "text",
+                id: "resultTextPipeline",
+                text: `Resposta do pipeline (análise imediata): ${result.message}`,
+                align: "center",
+                style: "header",
+              },
+            ],
+          },
+        },
+      });
+    }
+
     if (componentId === "submit_button_ocioso") {
       const pipelineResponse = await fetch(
         "http://test.godigibee.io/pipeline/dgb-support-lab/v1/cliente-ocioso",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
+          },
           body: JSON.stringify({
             msg: "teste cliente ocioso",
             metadata: {
