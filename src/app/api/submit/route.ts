@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     if (componentId === "submit_button_pipeline") {
       // Chamada ao pipeline com os metadados
       const pipelineResponse = await fetch(
-        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/api-support-escalation/analise-imediata",
+        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/analise-imediata",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
