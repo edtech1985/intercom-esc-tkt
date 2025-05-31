@@ -68,7 +68,7 @@ export async function POST(request: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            apikey: "x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
+            "apikey": "x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
           },
           body: JSON.stringify({
             msg: "",
