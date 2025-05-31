@@ -1,3 +1,5 @@
+// src/app/api/submit/route.ts
+
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -20,15 +22,14 @@ export async function POST(request: Request) {
 
     const contactType = customAttributes.contact_type || "not set";
 
-    if (componentId === "submit_button_pipeline") {
-      // Chamada ao pipeline com os metadados
+    if (componentId === "submit_button_ocioso") {
       const pipelineResponse = await fetch(
-        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/analise-imediata",
+        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/cliente-ocioso",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            msg: "teste analise imediata",
+            msg: "teste cliente ocioso",
             metadata: {
               conversation_id: conversationId,
               contact_type: contactType,
@@ -46,8 +47,8 @@ export async function POST(request: Request) {
             components: [
               {
                 type: "text",
-                id: "resultText",
-                text: `Resposta do pipeline: ${result.message}`,
+                id: "resultTextOcioso",
+                text: `Resposta do pipeline (cliente ocioso): ${result.message}`,
                 align: "center",
                 style: "header",
               },

@@ -1,3 +1,5 @@
+// src/app/api/initialize/route.ts
+
 import { NextResponse } from "next/server";
 
 export async function POST() {
@@ -38,9 +40,16 @@ export async function POST() {
           },
           {
             type: "button",
-            label: "Testar Chamar Pipeline",
+            label: "Testar Análise Imediata",
             style: "secondary",
             id: "submit_button_pipeline",
+            action: { type: "submit" },
+          },
+          {
+            type: "button",
+            label: "Testar Cliente ocioso",
+            style: "secondary",
+            id: "submit_button_ocioso",
             action: { type: "submit" },
           },
         ],
