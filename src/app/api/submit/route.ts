@@ -6,7 +6,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const componentId = body.component_id;
-    const inputValues = body.input_values || {};
 
     // Extrair metadados do usuário
     const user = body.user || {};
