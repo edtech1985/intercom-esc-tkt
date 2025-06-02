@@ -20,8 +20,6 @@ export async function POST(request: Request) {
       customAttributes.conversation_id ||
       "not provided";
 
-    const contactType = customAttributes.contact_type || "not set";
-
     if (componentId === "submit_button_pipeline") {
       const pipelineResponse = await fetch(
         "http://test.godigibee.io/pipeline/dgb-support-lab/v1/analise-imediata",
@@ -32,11 +30,9 @@ export async function POST(request: Request) {
             "apikey": process.env.DIGIBEE_API_KEY!,
           },
           body: JSON.stringify({
-            msg: "teste analise imediata",
+            msg: "Solicitação de analise imediata",
             metadata: {
               conversation_id: conversationId,
-              contact_type: contactType,
-              input_values: inputValues,
             },
           }),
         }
@@ -51,7 +47,7 @@ export async function POST(request: Request) {
               {
                 type: "text",
                 id: "resultTextPipeline",
-                text: `Resposta do pipeline (análise imediata): ${result.message}`,
+                text: `Escalation (análise imediata): ${result.message}`,
                 align: "center",
                 style: "header",
               },
@@ -71,11 +67,9 @@ export async function POST(request: Request) {
             "apikey": process.env.DIGIBEE_API_KEY!,
           },
           body: JSON.stringify({
-            msg: "",
+            msg: "Cliente ocioso",
             metadata: {
               conversation_id: conversationId,
-              contact_type: contactType,
-              input_values: inputValues,
             },
           }),
         }
@@ -90,7 +84,7 @@ export async function POST(request: Request) {
               {
                 type: "text",
                 id: "resultTextOcioso",
-                text: `Resposta do pipeline (cliente ocioso): ${result.message}`,
+                text: `Escalation(cliente ocioso): ${result.message}`,
                 align: "center",
                 style: "header",
               },
@@ -99,25 +93,6 @@ export async function POST(request: Request) {
         },
       });
     }
-
-    // Tratamento padrão do botão original
-    const departmentChoice = inputValues.departmentChoice || [];
-
-    return NextResponse.json({
-      canvas: {
-        content: {
-          components: [
-            {
-              type: "text",
-              id: "success",
-              text: `Você selecionou: ${departmentChoice.join(", ")}`,
-              align: "center",
-              style: "header",
-            },
-          ],
-        },
-      },
-    });
   } catch (error) {
     console.error("Erro no submit:", error);
     return NextResponse.json(
