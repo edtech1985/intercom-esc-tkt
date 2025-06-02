@@ -15,7 +15,6 @@ export async function POST(request: Request) {
     const conversationId =
       body.conversation?.id ||
       body.metadata?.conversation_id ||
-      body.input_values?.conversation_id ||
       customAttributes.conversation_id ||
       "not provided";
 
@@ -26,7 +25,7 @@ export async function POST(request: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "apikey": process.env.DIGIBEE_API_KEY!,
+            "apikey": "x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
           },
           body: JSON.stringify({
             msg: "Solicitação de analise imediata",
@@ -63,7 +62,7 @@ export async function POST(request: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "apikey": process.env.DIGIBEE_API_KEY!,
+            "apikey": "x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
           },
           body: JSON.stringify({
             msg: "Cliente ocioso",
