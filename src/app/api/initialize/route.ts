@@ -28,17 +28,6 @@ export async function POST() {
             style: "secondary",
             action: { type: "submit" },
           },
-          {
-            type: "divider",
-            id: "divider_after_buttons",
-          },
-          {
-            type: "text",
-            id: "clientesTexto",
-            text: "(Fleury, HDI, Assaí, Redeban, Salon Line, Localiza, Itaú, Vivo, Mariner, Grupo El Comercio)",
-            style: "paragraph",
-            align: "center",
-          },
         ],
       },
     },
