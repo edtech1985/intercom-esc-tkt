@@ -15,39 +15,15 @@ export async function POST() {
             style: "header",
           },
           {
-            type: "single-select",
-            id: "departmentChoice",
-            label: "Escolha o tipo de escalonamento",
-            options: [
-              {
-                type: "option",
-                id: "001",
-                text: "Precisa de uma análise imediata",
-              },
-              {
-                type: "option",
-                id: "002",
-                text: "Cliente ocioso",
-              },
-            ],
-          },
-          {
             type: "button",
-            label: "Escalar",
+            label: "Precisa de uma análise imediata",
             style: "primary",
-            id: "submit_button",
-            action: { type: "submit" },
-          },
-          {
-            type: "button",
-            label: "Testar Análise Imediata",
-            style: "secondary",
             id: "submit_button_pipeline",
             action: { type: "submit" },
           },
           {
             type: "button",
-            label: "Testar Cliente ocioso",
+            label: "Cliente ocioso",
             style: "secondary",
             id: "submit_button_ocioso",
             action: { type: "submit" },
