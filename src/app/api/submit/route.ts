@@ -26,7 +26,7 @@ export async function POST(request: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ["apikey"]: process.env.DIGIBEE_API_KEY!,
+            "apikey": process.env.DIGIBEE_API_KEY!,
           },
           body: JSON.stringify({
             msg: "Solicitação de analise imediata",
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ["apikey"]: process.env.DIGIBEE_API_KEY!,
+            "apikey": process.env.DIGIBEE_API_KEY!,
           },
           body: JSON.stringify({
             msg: "Cliente ocioso",
