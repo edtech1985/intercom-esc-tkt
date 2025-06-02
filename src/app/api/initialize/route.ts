@@ -10,7 +10,7 @@ export async function POST() {
           {
             type: "text",
             id: "023",
-            text: "Support-Escalation",
+            text: "Escalation Handling Scenarios",
             style: "header",
             align: "center",
           },
@@ -29,10 +29,14 @@ export async function POST() {
             action: { type: "submit" },
           },
           {
+            type: "divider",
+            id: "divider_after_buttons",
+          },
+          {
             type: "text",
             id: "clientesTexto",
             text: "(Fleury, HDI, Assaí, Redeban, Salon Line, Localiza, Itaú, Vivo, Mariner, Grupo El Comercio)",
-            style: "label",
+            style: "paragraph",
             align: "center",
           },
         ],
