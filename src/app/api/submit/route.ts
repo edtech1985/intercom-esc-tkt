@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     const conversation = body.conversation || {};
     const contact = conversation.contact || body.contact || {};
     const user = body.user || {};
+    const admin = body.admin || {};
 
     // Dados essenciais
     const conversationId = conversation.id || "not provided";
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
     const clientEmail = contact.email || user.email || "not provided";
     const clientName = contact.name || user.name || "not provided";
 
-    // Metadados essenciais para enviar
+    // Metadados essenciais para enviar (agora incluindo admin)
     const metadata = {
       conversation_id: conversationId,
       admin_assignee_id: adminAssigneeId,
@@ -27,6 +28,11 @@ export async function POST(request: Request) {
         id: clientId,
         email: clientEmail,
         name: clientName,
+      },
+      clicked_by_admin: {
+        id: admin.id || "not provided",
+        email: admin.email || "not provided",
+        name: admin.name || "not provided",
       },
     };
 
