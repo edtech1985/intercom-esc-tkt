@@ -5,10 +5,12 @@ export interface IntercomConversation {
   id?: string;
   created_at?: number;
   updated_at?: number;
+  admin_assignee_id?: string;
   source?: {
     type?: string;
     id?: string;
   };
+  contact?: IntercomContact;
 }
 
 export interface IntercomAdmin {
@@ -16,6 +18,10 @@ export interface IntercomAdmin {
   name?: string;
   email?: string;
   type?: string;
+  avatar?: {
+    type?: string;
+    image_url?: string;
+  };
 }
 
 export interface IntercomContact {
@@ -42,8 +48,37 @@ export interface IntercomSubmitRequest {
   conversation?: IntercomConversation;
   admin?: IntercomAdmin;
   contact?: IntercomContact;
+  user?: IntercomContact; // Às vezes o contact vem como user
   input_values?: Record<string, unknown>;
   current_canvas?: unknown;
+}
+
+// Metadados para envio para a Digibee
+export interface EscalationMetadata {
+  conversation_id: string;
+  admin_assignee_id: string;
+  client: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  clicked_by: {
+    admin_id: string;
+    admin_email: string;
+    admin_name: string;
+    click_timestamp: string;
+  };
+  action_details: {
+    component_id: string;
+    source: string;
+    app_version: string;
+  };
+}
+
+// Payload para a API da Digibee
+export interface DigibeeEscalationPayload {
+  msg: string;
+  metadata: EscalationMetadata;
 }
 
 // Estrutura de componentes Canvas
@@ -82,4 +117,9 @@ export interface ActionHistoryItem {
   status: "success" | "error";
   message: string;
   timestamp: string;
+  clicked_by?: {
+    admin_id: string;
+    admin_email: string;
+    admin_name: string;
+  };
 }
