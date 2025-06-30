@@ -1,173 +1,128 @@
 // src/app/api/submit/route.ts
-
 import { NextResponse } from "next/server";
 
-// Simulando um storage simples para histórico (em produção use Redis, DB, etc.)
-const actionHistory = new Map<
-  string,
-  Array<{
-    timestamp: string;
-    action: string;
-    user_id: string;
-    user_email: string;
-    status: "success" | "error";
-    details?: string;
-  }>
->();
+// Definir tipos para o body da requisição do Intercom
+interface IntercomSubmitBody {
+  component_id?: string;
+  conversation?: {
+    id?: string;
+  };
+  admin?: {
+    email?: string;
+    name?: string;
+  };
+  contact?: {
+    id?: string;
+    email?: string;
+  };
+  input_values?: Record<string, unknown>;
+}
+
+// Histórico em memória para demonstração
+let actionHistory: Array<{
+  action: string;
+  status: "success" | "error";
+  message: string;
+  timestamp: string;
+}> = [];
+
+function addToHistory(
+  action: string,
+  status: "success" | "error",
+  message: string = ""
+) {
+  actionHistory.push({
+    action,
+    status,
+    message,
+    timestamp: new Date().toLocaleString("pt-BR"),
+  });
+
+  // Manter apenas os últimos 10 registros
+  if (actionHistory.length > 10) {
+    actionHistory = actionHistory.slice(-10);
+  }
+}
+
+function generateHistoryComponent() {
+  if (actionHistory.length === 0) return null;
+
+  return {
+    type: "list",
+    id: "action_history",
+    items: actionHistory.map((item, index) => ({
+      type: "item",
+      id: `history_${index}`,
+      title: `${item.status === "success" ? "✅" : "❌"} ${item.action}`,
+      subtitle: `${item.timestamp}${item.message ? " - " + item.message : ""}`,
+    })),
+  };
+}
 
 export async function POST(request: Request) {
+  console.log("=== SUBMIT REQUEST ===");
+
   try {
-    const body = await request.json();
+    // Verificar se há conteúdo no body antes de tentar fazer parse
+    const contentLength = request.headers.get("content-length");
+    const contentType = request.headers.get("content-type");
+
+    console.log("Content-Length:", contentLength);
+    console.log("Content-Type:", contentType);
+
+    let body: IntercomSubmitBody = {};
+
+    // Só tentar fazer parse se houver conteúdo
+    if (contentLength && parseInt(contentLength) > 0) {
+      try {
+        const textBody = await request.text();
+        console.log("Raw body:", textBody);
+
+        if (textBody.trim()) {
+          body = JSON.parse(textBody) as IntercomSubmitBody;
+        }
+      } catch (parseError) {
+        console.warn(
+          "Erro ao fazer parse do JSON, usando body vazio:",
+          parseError
+        );
+        body = {};
+      }
+    }
+
+    console.log("Parsed body:", JSON.stringify(body, null, 2));
+
     const componentId = body.component_id;
-
-    // Extrair dados principais
     const conversation = body.conversation || {};
-    const contact = conversation.contact || body.contact || {};
-    const user = body.user || {};
-    const currentUser = body.current_user || body.admin || {}; // Quem clicou no botão
+    const admin = body.admin || {};
+    const actionUserEmail = admin.email || "unknown";
 
-    // Dados essenciais
-    const conversationId = conversation.id || "not provided";
-    const adminAssigneeId = conversation.admin_assignee_id || "not assigned";
-    const clientId = contact.id || user.id || "not provided";
-    const clientEmail = contact.email || user.email || "not provided";
-    const clientName = contact.name || user.name || "not provided";
+    console.log("Component ID:", componentId);
+    console.log("Action by:", actionUserEmail);
 
-    // Dados de quem executou a ação
-    const actionUserId = currentUser.id || currentUser.user_id || "unknown";
-    const actionUserEmail = currentUser.email || "unknown";
-    const actionUserName = currentUser.name || "unknown";
-
-    // Metadados para enviar
+    // Metadata para enviar para os pipelines
     const metadata = {
-      conversation_id: conversationId,
-      admin_assignee_id: adminAssigneeId,
-      client: {
-        id: clientId,
-        email: clientEmail,
-        name: clientName,
-      },
-      action_performed_by: {
-        id: actionUserId,
-        email: actionUserEmail,
-        name: actionUserName,
-      },
+      conversation_id: conversation.id,
+      admin_email: actionUserEmail,
+      timestamp: new Date().toISOString(),
     };
 
-    // Função para adicionar ao histórico
-    const addToHistory = (
-      action: string,
-      status: "success" | "error",
-      details?: string
-    ) => {
-      if (!actionHistory.has(conversationId)) {
-        actionHistory.set(conversationId, []);
-      }
-
-      const history = actionHistory.get(conversationId)!;
-      history.push({
-        timestamp: new Date().toISOString(),
-        action,
-        user_id: actionUserId,
-        user_email: actionUserEmail,
-        status,
-        details,
-      });
-
-      // Manter apenas os últimos 10 registros
-      if (history.length > 10) {
-        history.splice(0, history.length - 10);
-      }
-    };
-
-    // Função para gerar histórico visual
-    const generateHistoryComponent = () => {
-      const history = actionHistory.get(conversationId) || [];
-      if (history.length === 0) {
-        return null;
-      }
-
-      const historyText = history
-        .slice(-3) // Últimas 3 ações
-        .map((item) => {
-          const date = new Date(item.timestamp).toLocaleString("pt-BR");
-          const status = item.status === "success" ? "✅" : "❌";
-          return `${status} ${date} - ${item.action} (${item.user_email})`;
-        })
-        .join("\n");
-
-      return {
-        type: "text",
-        id: "action_history",
-        text: `📋 Últimas ações:\n${historyText}`,
-        style: "body",
-        align: "left",
-      };
-    };
-
-    // Botões de controle
+    // Botões de controle padrão
     const controlButtons = [
       {
         type: "button",
-        id: "btn_restart_flow",
-        label: "🔄 Reiniciar Fluxo",
+        id: "btn_new_action",
+        label: "🆕 Nova Ação",
         style: "secondary",
         action: { type: "submit" },
       },
     ];
 
-    // Handle de reinício do fluxo
-    if (componentId === "btn_restart_flow") {
-      addToHistory("Fluxo reiniciado", "success");
-
-      return NextResponse.json({
-        canvas: {
-          content: {
-            components: [
-              {
-                type: "text",
-                id: "restart_message",
-                text: "🔄 Fluxo reiniciado com sucesso!",
-                style: "header",
-                align: "center",
-              },
-              generateHistoryComponent(),
-              {
-                type: "spacer",
-                id: "spacer1",
-                size: "s",
-              },
-              {
-                type: "text",
-                id: "header_text",
-                text: "Escalation Handling Scenarios",
-                style: "header",
-                align: "center",
-              },
-              {
-                type: "button",
-                id: "submit_button_pipeline",
-                label: "Precisa de uma análise imediata",
-                style: "primary",
-                action: { type: "submit" },
-              },
-              {
-                type: "button",
-                id: "submit_button_ocioso",
-                label: "Cliente ocioso",
-                style: "secondary",
-                action: { type: "submit" },
-              },
-              ...controlButtons,
-            ].filter(Boolean),
-          },
-        },
-      });
-    }
-
     // Handle para análise imediata
     if (componentId === "submit_button_pipeline") {
       try {
+        console.log("Chamando pipeline de análise imediata...");
+
         const pipelineResponse = await fetch(
           "https://test.godigibee.io/pipeline/dgb-support-lab/v1/api-support-escalation/analise-imediata",
           {
@@ -177,14 +132,26 @@ export async function POST(request: Request) {
               apikey: "x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
             },
             body: JSON.stringify({
-              msg: "Solicitação de analise imediata",
+              msg: "Análise imediata solicitada",
               metadata: metadata,
             }),
           }
         );
 
+        if (!pipelineResponse.ok) {
+          throw new Error(
+            `Pipeline retornou status ${pipelineResponse.status}`
+          );
+        }
+
         const result = await pipelineResponse.json();
-        addToHistory("Análise imediata solicitada", "success", result.message);
+        console.log("Pipeline response:", result);
+
+        addToHistory(
+          "Análise imediata",
+          "success",
+          result.message || "Processado com sucesso"
+        );
 
         return NextResponse.json({
           canvas: {
@@ -193,13 +160,15 @@ export async function POST(request: Request) {
                 {
                   type: "text",
                   id: "resultTextPipeline",
-                  text: `✅ Escalation (análise imediata): ${result.message}`,
+                  text: `✅ Escalation (análise imediata): ${
+                    result.message || "Processado"
+                  }`,
                   align: "center",
                   style: "header",
                 },
                 {
                   type: "text",
-                  id: "action_by",
+                  id: "action_by_pipeline",
                   text: `Ação executada por: ${actionUserEmail}`,
                   align: "center",
                   style: "body",
@@ -216,6 +185,8 @@ export async function POST(request: Request) {
           },
         });
       } catch (error) {
+        console.error("Erro no pipeline de análise imediata:", error);
+
         addToHistory(
           "Análise imediata",
           "error",
@@ -231,6 +202,15 @@ export async function POST(request: Request) {
                   id: "errorMessage",
                   text: "❌ Erro ao solicitar análise imediata",
                   style: "error",
+                  align: "center",
+                },
+                {
+                  type: "text",
+                  id: "error_details",
+                  text: `Erro: ${
+                    error instanceof Error ? error.message : "Erro desconhecido"
+                  }`,
+                  style: "body",
                   align: "center",
                 },
                 generateHistoryComponent(),
@@ -251,7 +231,6 @@ export async function POST(request: Request) {
 
     // Handle para retry da análise imediata
     if (componentId === "retry_pipeline") {
-      // Redireciona para o mesmo fluxo da análise imediata
       return POST({
         ...request,
         json: async () => ({ ...body, component_id: "submit_button_pipeline" }),
@@ -261,6 +240,8 @@ export async function POST(request: Request) {
     // Handle para cliente ocioso
     if (componentId === "submit_button_ocioso") {
       try {
+        console.log("Chamando pipeline de cliente ocioso...");
+
         const pipelineResponse = await fetch(
           "https://test.godigibee.io/pipeline/dgb-support-lab/v1/api-support-escalation/cliente-ocioso",
           {
@@ -276,8 +257,20 @@ export async function POST(request: Request) {
           }
         );
 
+        if (!pipelineResponse.ok) {
+          throw new Error(
+            `Pipeline retornou status ${pipelineResponse.status}`
+          );
+        }
+
         const result = await pipelineResponse.json();
-        addToHistory("Cliente ocioso processado", "success", result.message);
+        console.log("Pipeline response:", result);
+
+        addToHistory(
+          "Cliente ocioso",
+          "success",
+          result.message || "Processado com sucesso"
+        );
 
         return NextResponse.json({
           canvas: {
@@ -286,7 +279,9 @@ export async function POST(request: Request) {
                 {
                   type: "text",
                   id: "resultTextOcioso",
-                  text: `✅ Escalation (cliente ocioso): ${result.message}`,
+                  text: `✅ Escalation (cliente ocioso): ${
+                    result.message || "Processado"
+                  }`,
                   align: "center",
                   style: "header",
                 },
@@ -309,6 +304,8 @@ export async function POST(request: Request) {
           },
         });
       } catch (error) {
+        console.error("Erro no pipeline de cliente ocioso:", error);
+
         addToHistory(
           "Cliente ocioso",
           "error",
@@ -324,6 +321,15 @@ export async function POST(request: Request) {
                   id: "errorMessageOcioso",
                   text: "❌ Erro ao processar cliente ocioso",
                   style: "error",
+                  align: "center",
+                },
+                {
+                  type: "text",
+                  id: "error_details",
+                  text: `Erro: ${
+                    error instanceof Error ? error.message : "Erro desconhecido"
+                  }`,
+                  style: "body",
                   align: "center",
                 },
                 generateHistoryComponent(),
@@ -350,7 +356,67 @@ export async function POST(request: Request) {
       } as Request);
     }
 
+    // Handle para nova ação (voltar ao início)
+    if (componentId === "btn_new_action" || componentId === "retry_init") {
+      actionHistory = []; // Limpar histórico
+
+      return NextResponse.json({
+        canvas: {
+          content: {
+            components: [
+              {
+                type: "text",
+                id: "header_main",
+                text: "🎯 Escalation Handling Scenarios",
+                style: "header",
+                align: "center",
+              },
+              {
+                type: "text",
+                id: "subtitle",
+                text: `Conversa: ${conversation.id || "unknown"}`,
+                style: "body",
+                align: "center",
+              },
+              {
+                type: "spacer",
+                id: "spacer_main",
+                size: "s",
+              },
+              {
+                type: "button",
+                id: "submit_button_pipeline",
+                label: "🚨 Precisa de uma análise imediata",
+                style: "primary",
+                action: { type: "submit" },
+              },
+              {
+                type: "button",
+                id: "submit_button_ocioso",
+                label: "😴 Cliente ocioso",
+                style: "secondary",
+                action: { type: "submit" },
+              },
+              {
+                type: "spacer",
+                id: "spacer_controls",
+                size: "s",
+              },
+              {
+                type: "text",
+                id: "footer_info",
+                text: "💡 Selecione uma ação de escalation",
+                style: "body",
+                align: "center",
+              },
+            ],
+          },
+        },
+      });
+    }
+
     // Componente não reconhecido
+    console.warn("Componente não reconhecido:", componentId);
     addToHistory(`Ação desconhecida: ${componentId}`, "error");
 
     return NextResponse.json({
@@ -364,6 +430,13 @@ export async function POST(request: Request) {
               style: "body",
               align: "center",
             },
+            {
+              type: "text",
+              id: "component_id",
+              text: `Component ID: ${componentId}`,
+              style: "body",
+              align: "center",
+            },
             generateHistoryComponent(),
             ...controlButtons,
           ].filter(Boolean),
@@ -371,7 +444,16 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Erro no submit:", error);
+    console.error("=== SUBMIT ERROR ===");
+    console.error("Error details:", error);
+    console.error(
+      "Error message:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    console.error(
+      "Error stack:",
+      error instanceof Error ? error.stack : "No stack trace"
+    );
 
     return NextResponse.json({
       canvas: {
@@ -385,9 +467,18 @@ export async function POST(request: Request) {
               align: "center",
             },
             {
+              type: "text",
+              id: "error_details",
+              text: `Erro: ${
+                error instanceof Error ? error.message : "Erro desconhecido"
+              }`,
+              style: "body",
+              align: "center",
+            },
+            {
               type: "button",
-              id: "btn_restart_flow",
-              label: "🔄 Reiniciar Fluxo",
+              id: "btn_new_action",
+              label: "🔄 Reiniciar",
               style: "secondary",
               action: { type: "submit" },
             },
@@ -396,4 +487,20 @@ export async function POST(request: Request) {
       },
     });
   }
+}
+
+// Handler para OPTIONS (preflight CORS)
+export async function OPTIONS() {
+  console.log("=== OPTIONS REQUEST (PREFLIGHT) ===");
+
+  return new Response(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers":
+        "Content-Type, Authorization, X-Body-Signature",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
 }
