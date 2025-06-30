@@ -20,7 +20,12 @@ export async function POST(request: Request) {
     const clientEmail = contact.email || user.email || "not provided";
     const clientName = contact.name || user.name || "not provided";
 
-    // Metadados essenciais para enviar (agora incluindo admin)
+    // Dados de quem clicou no botão (admin/agente)
+    const clickedByAdminId = admin.id || "not provided";
+    const clickedByAdminEmail = admin.email || "not provided";
+    const clickedByAdminName = admin.name || "not provided";
+
+    // Metadados essenciais para enviar
     const metadata = {
       conversation_id: conversationId,
       admin_assignee_id: adminAssigneeId,
@@ -30,9 +35,9 @@ export async function POST(request: Request) {
         name: clientName,
       },
       clicked_by_admin: {
-        id: admin.id || "not provided",
-        email: admin.email || "not provided",
-        name: admin.name || "not provided",
+        id: clickedByAdminId,
+        email: clickedByAdminEmail,
+        name: clickedByAdminName,
       },
     };
 
