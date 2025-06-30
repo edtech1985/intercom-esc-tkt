@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   console.log("=== INITIALIZE REQUEST ===");
 
   try {
-    // Verificar se há conteúdo no body antes de tentar fazer parse
+    // Verificar se há conteúdo no body
     const contentLength = request.headers.get("content-length");
     const contentType = request.headers.get("content-type");
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     let body: IntercomRequestBody = {};
 
-    // Só tentar fazer parse se houver conteúdo
+    // Tentar fazer parse do body se houver conteúdo
     if (contentLength && parseInt(contentLength) > 0) {
       try {
         const textBody = await request.text();
@@ -39,10 +39,7 @@ export async function POST(request: Request) {
           body = JSON.parse(textBody) as IntercomRequestBody;
         }
       } catch (parseError) {
-        console.warn(
-          "Erro ao fazer parse do JSON, usando body vazio:",
-          parseError
-        );
+        console.warn("Erro ao fazer parse do JSON:", parseError);
         body = {};
       }
     } else {
@@ -52,15 +49,14 @@ export async function POST(request: Request) {
     console.log("Parsed body:", JSON.stringify(body, null, 2));
 
     // Capturar dados da conversa se disponíveis
-    const conversation = body.conversation || {};
-    const conversationId = conversation.id || "unknown";
-    const admin = body.admin || {};
-    const adminEmail = admin.email || "unknown";
+    const conversationId = body.conversation?.id || "unknown";
+    const adminEmail = body.admin?.email || "unknown";
 
     console.log("Conversation ID:", conversationId);
     console.log("Admin email:", adminEmail);
     console.log("Criando canvas inicial...");
 
+    // Canvas simplificado para teste
     const initialCanvas = {
       canvas: {
         content: {
@@ -68,7 +64,7 @@ export async function POST(request: Request) {
             {
               type: "text",
               id: "header_main",
-              text: "🎯 Escalation Handling Scenarios",
+              text: "Escalation Handling Scenarios",
               style: "header",
               align: "center",
             },
@@ -80,13 +76,6 @@ export async function POST(request: Request) {
               align: "center",
             },
             {
-              type: "text",
-              id: "admin_info",
-              text: `Admin: ${adminEmail}`,
-              style: "body",
-              align: "center",
-            },
-            {
               type: "spacer",
               id: "spacer_main",
               size: "s",
@@ -94,16 +83,20 @@ export async function POST(request: Request) {
             {
               type: "button",
               id: "submit_button_pipeline",
-              label: "🚨 Precisa de uma análise imediata",
+              label: "Precisa de análise imediata",
               style: "primary",
-              action: { type: "submit" },
+              action: {
+                type: "submit",
+              },
             },
             {
               type: "button",
               id: "submit_button_ocioso",
-              label: "😴 Cliente ocioso",
+              label: "Cliente ocioso",
               style: "secondary",
-              action: { type: "submit" },
+              action: {
+                type: "submit",
+              },
             },
             {
               type: "spacer",
@@ -113,7 +106,7 @@ export async function POST(request: Request) {
             {
               type: "text",
               id: "footer_info",
-              text: "💡 O histórico das ações será exibido após a primeira interação",
+              text: "O histórico das ações será exibido após a primeira interação",
               style: "body",
               align: "center",
             },
@@ -125,34 +118,17 @@ export async function POST(request: Request) {
     console.log("Canvas criado com sucesso");
     console.log("Sending canvas response");
 
+    // Resposta simples sem headers CORS desnecessários
     const response = NextResponse.json(initialCanvas);
-
-    // Headers necessários
     response.headers.set("Content-Type", "application/json");
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    response.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-Body-Signature"
-    );
 
     console.log("=== INITIALIZE SUCCESS ===");
     return response;
   } catch (error) {
     console.error("=== INITIALIZE ERROR ===");
     console.error("Error details:", error);
-    console.error(
-      "Error message:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
-    console.error(
-      "Error stack:",
-      error instanceof Error ? error.stack : "No stack trace"
-    );
 
+    // Canvas de erro simplificado
     const errorResponse = NextResponse.json({
       canvas: {
         content: {
@@ -160,7 +136,7 @@ export async function POST(request: Request) {
             {
               type: "text",
               id: "init_error",
-              text: "❌ Erro ao inicializar o app",
+              text: "Erro ao inicializar o app",
               style: "error",
               align: "center",
             },
@@ -173,45 +149,12 @@ export async function POST(request: Request) {
               style: "body",
               align: "center",
             },
-            {
-              type: "button",
-              id: "retry_init",
-              label: "🔄 Tentar Novamente",
-              style: "primary",
-              action: { type: "submit" },
-            },
           ],
         },
       },
     });
 
     errorResponse.headers.set("Content-Type", "application/json");
-    errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-    errorResponse.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    errorResponse.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-Body-Signature"
-    );
-
     return errorResponse;
   }
-}
-
-// Handler para OPTIONS (preflight CORS)
-export async function OPTIONS() {
-  console.log("=== OPTIONS REQUEST (PREFLIGHT) ===");
-
-  return new Response(null, {
-    status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers":
-        "Content-Type, Authorization, X-Body-Signature",
-      "Access-Control-Max-Age": "86400",
-    },
-  });
 }
