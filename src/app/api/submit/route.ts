@@ -7,43 +7,20 @@ export async function POST(request: Request) {
     const body = await request.json();
     const componentId = body.component_id;
 
-    // Extrair dados principais de forma mais robusta
-    const conversation = body.conversation || {};
-    const contact = conversation.contact || body.contact || {};
+    // Extrair metadados do usuário
     const user = body.user || {};
-    const admin = body.admin || {};
+    const customAttributes = user.custom_attributes || {};
 
-    // Dados essenciais
-    const conversationId = conversation.id || "not provided";
-    const adminAssigneeId = conversation.admin_assignee_id || "not assigned";
-    const clientId = contact.id || user.id || "not provided";
-    const clientEmail = contact.email || user.email || "not provided";
-    const clientName = contact.name || user.name || "not provided";
-
-    // Dados de quem clicou no botão (admin/agente)
-    const clickedByAdminId = admin.id || "not provided";
-    const clickedByAdminEmail = admin.email || "not provided";
-    const clickedByAdminName = admin.name || "not provided";
-
-    // Metadados essenciais para enviar
-    const metadata = {
-      conversation_id: conversationId,
-      admin_assignee_id: adminAssigneeId,
-      client: {
-        id: clientId,
-        email: clientEmail,
-        name: clientName,
-      },
-      clicked_by_admin: {
-        id: clickedByAdminId,
-        email: clickedByAdminEmail,
-        name: clickedByAdminName,
-      },
-    };
+    // Tenta extrair o conversation_id do body.conversation.id
+    const conversationId =
+      body.conversation?.id ||
+      body.metadata?.conversation_id ||
+      customAttributes.conversation_id ||
+      "not provided";
 
     if (componentId === "submit_button_pipeline") {
       const pipelineResponse = await fetch(
-        "https://test.godigibee.io/pipeline/dgb-support-lab/v1/api-support-escalation/analise-imediata",
+        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/analise-imediata",
         {
           method: "POST",
           headers: {
@@ -52,7 +29,9 @@ export async function POST(request: Request) {
           },
           body: JSON.stringify({
             msg: "Solicitação de analise imediata",
-            metadata: metadata,
+            metadata: {
+              conversation_id: conversationId,
+            },
           }),
         }
       );
@@ -78,7 +57,7 @@ export async function POST(request: Request) {
 
     if (componentId === "submit_button_ocioso") {
       const pipelineResponse = await fetch(
-        "https://test.godigibee.io/pipeline/dgb-support-lab/v1/api-support-escalation/cliente-ocioso",
+        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/cliente-ocioso",
         {
           method: "POST",
           headers: {
@@ -87,7 +66,9 @@ export async function POST(request: Request) {
           },
           body: JSON.stringify({
             msg: "Cliente ocioso",
-            metadata: metadata,
+            metadata: {
+              conversation_id: conversationId,
+            },
           }),
         }
       );
@@ -101,7 +82,7 @@ export async function POST(request: Request) {
               {
                 type: "text",
                 id: "resultTextOcioso",
-                text: `Escalation (cliente ocioso): ${result.message}`,
+                text: `Escalation(cliente ocioso): ${result.message}`,
                 align: "center",
                 style: "header",
               },
