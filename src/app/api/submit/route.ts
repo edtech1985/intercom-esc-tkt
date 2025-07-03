@@ -18,7 +18,6 @@ export async function POST(request: Request) {
       body.metadata?.conversation_id ||
       customAttributes.conversation_id ||
       "not provided";
-    const conversationDisplayId = conversation.display_id || "not available";
     const adminAssigneeId = conversation.admin_assignee_id || "not assigned";
     const clientId = contact.id || user.id || "not provided";
     const clientEmail = contact.email || user.email || "not provided";
@@ -27,7 +26,6 @@ export async function POST(request: Request) {
     // Construir objeto de metadados
     const metadata = {
       conversation_id: conversationId,
-      conversation_display_id: conversationDisplayId,
       admin_assignee_id: adminAssigneeId,
       client: {
         id: clientId,
