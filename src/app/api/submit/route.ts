@@ -47,10 +47,7 @@ export async function POST(request: Request) {
           },
           body: JSON.stringify({
             msg: "Solicitação de análise imediata",
-            metadata: {
-              ...metadata,
-              conversation_full: conversation,
-            },
+            metadata,
           }),
         }
       );
