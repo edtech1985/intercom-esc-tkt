@@ -7,17 +7,29 @@ export async function POST(request: Request) {
     const body = await request.json();
     const componentId = body.component_id;
 
-    // Extrair metadados do usuário
+    // Extrair dados do payload
     const user = body.user || {};
+    const admin = body.admin || {};
+    const conversation = body.conversation || {};
     const customAttributes = user.custom_attributes || {};
 
-    // Tenta extrair o conversation_id do body.conversation.id
-    const conversationId =
-      body.conversation?.id ||
-      body.metadata?.conversation_id ||
-      customAttributes.conversation_id ||
-      "not provided";
+    // Construir objeto de metadados
+    const metadata = {
+      conversation_id:
+        conversation.id ||
+        body.metadata?.conversation_id ||
+        customAttributes.conversation_id ||
+        "not provided",
+      admin_assignee_id: conversation.assignee?.id || "not assigned",
+      client: {
+        id: user.id || "unknown",
+        email: user.email || "unknown",
+        name: `${user.name || user.full_name || "unknown"}`,
+      },
+      clicked_by: `${admin.name || admin.full_name || "unknown"}`, // nome do atendente que clicou
+    };
 
+    // Definições por botão
     if (componentId === "submit_button_pipeline") {
       const pipelineResponse = await fetch(
         "https://test.godigibee.io/pipeline/dgb-support-lab/v1/api-support-escalation/analise-imediata",
@@ -28,10 +40,8 @@ export async function POST(request: Request) {
             apikey: "x8boiLS7n7vCGJfWbImOFmbtsqhbHgDA",
           },
           body: JSON.stringify({
-            msg: "Solicitação de analise imediata",
-            metadata: {
-              conversation_id: conversationId,
-            },
+            msg: "Solicitação de análise imediata",
+            metadata,
           }),
         }
       );
@@ -66,9 +76,7 @@ export async function POST(request: Request) {
           },
           body: JSON.stringify({
             msg: "Cliente ocioso",
-            metadata: {
-              conversation_id: conversationId,
-            },
+            metadata,
           }),
         }
       );
@@ -82,7 +90,7 @@ export async function POST(request: Request) {
               {
                 type: "text",
                 id: "resultTextOcioso",
-                text: `Escalation(cliente ocioso): ${result.message}`,
+                text: `Escalation (cliente ocioso): ${result.message}`,
                 align: "center",
                 style: "header",
               },
@@ -91,6 +99,12 @@ export async function POST(request: Request) {
         },
       });
     }
+
+    // Caso nenhum botão seja identificado
+    return NextResponse.json(
+      { error: "Botão não reconhecido." },
+      { status: 400 }
+    );
   } catch (error) {
     console.error("Erro no submit:", error);
     return NextResponse.json(
