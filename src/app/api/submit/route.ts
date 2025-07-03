@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     if (componentId === "submit_button_pipeline") {
       const pipelineResponse = await fetch(
-        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/analise-imediata",
+        "https://test.godigibee.io/pipeline/dgb-support-lab/v1/api-support-escalation/analise-imediata",
         {
           method: "POST",
           headers: {
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
     if (componentId === "submit_button_ocioso") {
       const pipelineResponse = await fetch(
-        "http://test.godigibee.io/pipeline/dgb-support-lab/v1/cliente-ocioso",
+        "https://test.godigibee.io/pipeline/dgb-support-lab/v1/api-support-escalation/cliente-ocioso",
         {
           method: "POST",
           headers: {
