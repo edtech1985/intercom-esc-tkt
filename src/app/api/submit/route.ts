@@ -12,19 +12,27 @@ export async function POST(request: Request) {
     const admin = body.admin || {};
     const conversation = body.conversation || {};
     const customAttributes = user.custom_attributes || {};
+    const contact = conversation.contact || body.contact || {};
+
+    // Dados essenciais
+    const conversationId =
+      conversation.id ||
+      body.metadata?.conversation_id ||
+      customAttributes.conversation_id ||
+      "not provided";
+    const adminAssigneeId = conversation.admin_assignee_id || "not assigned";
+    const clientId = contact.id || user.id || "not provided";
+    const clientEmail = contact.email || user.email || "not provided";
+    const clientName = contact.name || user.name || "not provided";
 
     // Construir objeto de metadados
     const metadata = {
-      conversation_id:
-        conversation.id ||
-        body.metadata?.conversation_id ||
-        customAttributes.conversation_id ||
-        "not provided",
-      admin_assignee_id: conversation.assignee?.id || "not assigned",
+      conversation_id: conversationId,
+      admin_assignee_id: adminAssigneeId,
       client: {
-        id: user.id || "unknown",
-        email: user.email || "unknown",
-        name: `${user.name || user.full_name || "unknown"}`,
+        id: clientId,
+        email: clientEmail,
+        name: clientName,
       },
       clicked_by: `${admin.name || admin.full_name || "unknown"}`, // nome do atendente que clicou
     };
