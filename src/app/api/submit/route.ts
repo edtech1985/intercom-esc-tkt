@@ -13,13 +13,12 @@ export async function POST(request: Request) {
     const conversation = body.conversation || {};
     const customAttributes = user.custom_attributes || {};
     const contact = conversation.contact || body.contact || {};
-
-    // Dados essenciais
     const conversationId =
       conversation.id ||
       body.metadata?.conversation_id ||
       customAttributes.conversation_id ||
       "not provided";
+    const conversationDisplayId = conversation.display_id || "not available";
     const adminAssigneeId = conversation.admin_assignee_id || "not assigned";
     const clientId = contact.id || user.id || "not provided";
     const clientEmail = contact.email || user.email || "not provided";
@@ -28,6 +27,7 @@ export async function POST(request: Request) {
     // Construir objeto de metadados
     const metadata = {
       conversation_id: conversationId,
+      conversation_display_id: conversationDisplayId,
       admin_assignee_id: adminAssigneeId,
       client: {
         id: clientId,
