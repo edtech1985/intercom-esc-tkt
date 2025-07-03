@@ -7,34 +7,16 @@ export async function POST(request: Request) {
     const body = await request.json();
     const componentId = body.component_id;
 
-    // Extrair dados principais de forma mais robusta
-    const conversation = body.conversation || {};
-    const contact = conversation.contact || body.contact || {};
+    // Extrair metadados do usuário
     const user = body.user || {};
-    const admin = body.admin || {};
+    const customAttributes = user.custom_attributes || {};
 
-    // Dados essenciais
-    const conversationId = conversation.id || "not provided";
-    const adminAssigneeId = conversation.admin_assignee_id || "not assigned";
-    const clientId = contact.id || user.id || "not provided";
-    const clientEmail = contact.email || user.email || "not provided";
-    const clientName = contact.name || user.name || "not provided";
-
-    // Metadados essenciais para enviar (agora incluindo admin)
-    const metadata = {
-      conversation_id: conversationId,
-      admin_assignee_id: adminAssigneeId,
-      client: {
-        id: clientId,
-        email: clientEmail,
-        name: clientName,
-      },
-      clicked_by_admin: {
-        id: admin.id || "not provided",
-        email: admin.email || "not provided",
-        name: admin.name || "not provided",
-      },
-    };
+    // Tenta extrair o conversation_id do body.conversation.id
+    const conversationId =
+      body.conversation?.id ||
+      body.metadata?.conversation_id ||
+      customAttributes.conversation_id ||
+      "not provided";
 
     if (componentId === "submit_button_pipeline") {
       const pipelineResponse = await fetch(
@@ -47,7 +29,9 @@ export async function POST(request: Request) {
           },
           body: JSON.stringify({
             msg: "Solicitação de analise imediata",
-            metadata: metadata,
+            metadata: {
+              conversation_id: conversationId,
+            },
           }),
         }
       );
@@ -82,7 +66,9 @@ export async function POST(request: Request) {
           },
           body: JSON.stringify({
             msg: "Cliente ocioso",
-            metadata: metadata,
+            metadata: {
+              conversation_id: conversationId,
+            },
           }),
         }
       );
@@ -96,7 +82,7 @@ export async function POST(request: Request) {
               {
                 type: "text",
                 id: "resultTextOcioso",
-                text: `Escalation (cliente ocioso): ${result.message}`,
+                text: `Escalation(cliente ocioso): ${result.message}`,
                 align: "center",
                 style: "header",
               },
